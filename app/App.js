@@ -1,93 +1,174 @@
 import React from 'react';
-import { View, Text, Button, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, StyleSheet, Text, TouchableOpacity, SafeAreaView } from 'react-native';
 
-export default function Calculator() {
-  const digits = () => {
-    const generateDigits = [];
-    for (let i = 0; i < 10; i++) {
-      generateDigits.push(
-        <Button
-          title='i'
-          key={i}
-          style={{ flex: '1 1 33.333%', maxWidth: '33.333%', backgroundColor: '#465362' }}>
-          {i}
-        </Button>,
+export default class Calculator extends React.Component {
+  constructor() {
+    super();
+    this.opers = ['+', '-', '*', '/', 'C'];
+    this.state = {
+      validAction: '',
+      txtCalc: '',
+    };
+  }
+
+  result() {
+    const txtResult = this.state.validAction;
+    this.setState({ txtCalc: eval(txtResult) });
+  }
+
+  action(next) {
+    const lastOfIndex = this.state.validAction.split('').pop();
+
+    if (next == '=') {
+      if (this.opers.includes(lastOfIndex)) return;
+      return this.result();
+    }
+    this.setState({ validAction: this.state.validAction + next });
+  }
+
+  clear() {
+    let res = this.state.validAction.split('');
+    res.pop();
+    res.join('');
+    this.setState({ validAction: res.join('') });
+    this.setState({ txtCalc: '' });
+  }
+
+  chooseAction(op) {
+    switch (op) {
+      case 'C':
+        this.clear();
+        break;
+      case '+':
+        this.clear();
+      case '-':
+        this.clear();
+      case '*':
+        this.clear();
+      case '.':
+        this.clear();
+      case '/':
+        const lastOfIndex = this.state.validAction.split('').pop();
+
+        if (this.opers.indexOf(lastOfIndex) != -1 || this.state.validAction == '') return;
+
+        this.setState({ validAction: this.state.validAction + op });
+    }
+  }
+
+  render() {
+    let signOperation = [];
+    for (let i = 0; i < this.opers.length; i++) {
+      signOperation.push(
+        <TouchableOpacity
+          key={this.opers[i]}
+          onPress={() => this.chooseAction(this.opers[i])}
+          style={styles.btn}>
+          <Text style={[styles.btnText, styles.light]}>{this.opers[i]}</Text>
+        </TouchableOpacity>,
       );
     }
-    return generateDigits;
-  };
+    let buildRows = [];
+    let array = [
+      [7, 8, 9],
+      [4, 5, 6],
+      [1, 2, 3],
+      [0, '.', '='],
+    ];
+    for (let k = 0; k < 4; k++) {
+      let temp = [];
+      for (let kk = 0; kk < 3; kk++) {
+        temp.push(
+          <TouchableOpacity
+            key={array[k][kk]}
+            onPress={() => this.action(array[k][kk])}
+            style={styles.btn}>
+            <Text style={styles.btnText}>{array[k][kk]}</Text>
+          </TouchableOpacity>,
+        );
+      }
+      buildRows.push(
+        <View key={k} style={styles.row}>
+          {temp}
+        </View>,
+      );
+    }
 
-  return (
-    <View style={StyleSheet.container}>
-      <View style={styles.calculator}>
-        <View style={styles.output}></View>
-        <View style={styles.operators}>
-          <Button title='plus' style={styles.buttonContainer}>
-            +
-          </Button>
-          <Button title='minus' style={styles.buttonContainer}>
-            -
-          </Button>
-          <Button title='mult' style={styles.buttonContainer}>
-            *
-          </Button>
-          <Button title='div' style={styles.buttonContainer}>
-            /
-          </Button>
-          <Button title='clear' style={styles.buttonContainer}>
-            C
-          </Button>
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.result}>
+          <Text style={styles.txtRes}>{this.state.validAction || 0}</Text>
+          <View style={styles.calculator}>
+            <Text style={styles.txtCalculate}>{this.state.txtCalc}</Text>
+          </View>
         </View>
-        <View style={styles.digits}>
-          <Button title='equals' style={styles.buttonContainer}>
-            =
-          </Button>
-          {digits()}
-          {/* <View> <Button>0</Button> </View> */}
+
+        <View style={styles.btns}>
+          <View style={styles.digits}>{buildRows}</View>
+          <View style={styles.operators}>{signOperation}</View>
         </View>
-      </View>
-    </View>
-  );
+      </SafeAreaView>
+    );
+  }
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    margin: 0,
-    padding: 0,
-    backgroundColorq: '#183059',
   },
-  app: {
-    minHeight: '100vh',
-    display: 'flex',
+  result: {
+    flex: 2,
+    backgroundColor: '#F4F7F5',
+    justifyContent: 'center',
+    alignItems: 'flex-end',
+    paddingEnd: 20,
+    padding: 25,
+  },
+  txtRes: {
+    fontSize: 40,
+    color: '#F7CB15',
+  },
+  calculator: {
+    flex: 1,
+    backgroundColor: '#F4F7F5',
+    justifyContent: 'center',
+    alignItems: 'flex-end',
+  },
+  txtCalculate: {
+    fontSize: 45,
+    color: '#222823',
+  },
+  btns: {
+    flexDirection: 'row',
+    flex: 7,
+  },
+  operators: {
+    flex: 1,
+    backgroundColor: '#011502',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+  },
+  digits: {
+    backgroundColor: '#F4F7F5',
+    flex: 3,
+  },
+  row: {
+    flex: 1,
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+  },
+  btn: {
+    flex: 1,
+    alignItems: 'stretch',
+    alignself: 'stretch',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  calculator: {
-    width: '100%',
-    maxWidth: '350px',
-    backgroundColor: '#276FBF',
-    borderRadius: 20,
+  btnText: {
+    fontSize: 30,
   },
-  output: {
-    padding: 15,
-    textAlign: 'right',
-    backgroundColor: '#F03A47',
-    color: '#F6F4F3',
-    fontSize: 24,
-    fontWeight: 500,
-  },
-  operators: {
-    display: 'flex',
-    fontWeight: 500,
-  },
-  digits: {
-    display: 'flex',
-    flexWrap: 'wrap',
-  },
-  buttonContainer: {
-    color: '#317B22',
-    fontSize: 20,
-    padding: 16,
+  light: {
+    color: '#F4F7F5',
   },
 });
